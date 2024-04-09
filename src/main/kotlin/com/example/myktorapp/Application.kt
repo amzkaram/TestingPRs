@@ -14,7 +14,14 @@ fun main() {
 fun Application.module() {
     routing {
         get("/") {
-            call.respondText("Hello, World!")
+            call.respondText("Hello, World!", ContentType.Text.Plain)
+        }
+        post("/users") {
+            handlePostUser(call)
         }
     }
+import com.example.myktorapp.UserController.handlePostUser
+import io.ktor.http.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 }
