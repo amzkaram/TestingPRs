@@ -34,6 +34,7 @@ Actions:
     Configuration:
       # Required - Steps are sequential instructions that run shell commands
       Steps:
+        - Run: python -m unittest test_tree_utils
         - Run: echo "Hello, World!"
         - Run: echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" >> report.xml
         - Run: echo "<testsuite tests=\"1\" name=\"TestAgentJunit\" >" >> report.xml
