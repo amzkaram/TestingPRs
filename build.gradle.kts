@@ -28,16 +28,11 @@ tasks.withType<KotlinCompile> {
 application {
     mainClass.set("com.example.myktorapp.ApplicationKt")
 }
+
 tasks.named<ShadowJar>("shadowJar") {
     archiveBaseName.set("ktor-app-fat")
     mergeServiceFiles()
     manifest {
         attributes(mapOf("Main-Class" to "com.example.myktorapp.ApplicationKt"))
     }
-}
-
-task buildApp(type: JavaExec) {
-    dependsOn("shadowJar")
-    main = "com.example.myktorapp.ApplicationKt"
-    classpath = tasks.shadowJar.get().outputs.files
 }
