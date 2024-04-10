@@ -1,8 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     kotlin("jvm") version "1.7.22"
     application
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "com.example"
@@ -25,4 +27,17 @@ tasks.withType<KotlinCompile> {
 
 application {
     mainClass.set("com.example.myktorapp.ApplicationKt")
+}
+tasks.named<ShadowJar>("shadowJar") {
+    archiveBaseName.set("ktor-app-fat")
+    mergeServiceFiles()
+    manifest {
+        attributes(mapOf("Main-Class" to "com.example.myktorapp.ApplicationKt"))
+    }
+}
+
+task buildApp(type: JavaExec) {
+    dependsOn("shadowJar")
+    main = "com.example.myktorapp.ApplicationKt"
+    classpath = tasks.shadowJar.get().outputs.files
 }
