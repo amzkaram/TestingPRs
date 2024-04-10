@@ -1,0 +1,44 @@
+Name: ktor-deployment-workflow
+SchemaVersion: 1.0
+
+Triggers:
+- Type: PUSH
+  Branches:
+  - main
+
+Actions:
+  BuildKtor-gamma:
+    Identifier: aws/build-gamma@v1
+    Environment:
+      Name: Testing-Q
+      Connections:
+      - Name: codecatalyst-account-connection
+    Inputs:
+      Sources:
+      - WorkflowSource
+    Configuration:
+      Steps:
+        - Name: Build
+          RunCommand:
+            - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
+        - Name: Push
+          RunCommand:
+            - docker push $REPOSITORY_URI:$IMAGE_TAG
+
+  DeployToFargate-gamma:
+    Identifier: aws/kubernetes-deploy@v1
+    DependsOn:
+    - BuildKtor-gamma
+    Environment:
+      Name: Testing-Q
+      Connections:
+      - Name: codecatalyst-account-connection
+        Role: arn:aws:iam::123456789012:role/CodeCatalystRole
+    Inputs:
+      Artifacts:
+      - Manifests
+    Configuration:
+      Namespace: default
+      Region: us-west-2
+      Cluster: Testing-Q-EKS-Cluster
+      Manifests: Kubernetes/
