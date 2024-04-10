@@ -1,0 +1,56 @@
+Name: ktor-fargate-deploy
+SchemaVersion: "1.0"
+
+Triggers:
+  - Type: PUSH
+    Branches:
+      - main
+
+Actions:
+  BuildKtorApp:
+    Identifier: aws/build-gamma@v1
+    Environment:
+      Name: ktor-fargate-env
+      Connections:
+        - Name: ktor-fargate-account-connection
+          Role: arn:aws:iam::<account_id>:role/<build_role_name>
+    Inputs:
+      Sources:
+        - WorkflowSource
+    Configuration:
+      Steps:
+        - Run: ./gradlew build
+        - Run: |
+            docker build -t $REPOSITORY_URI:latest .
+            docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+        - Run: |
+            aws ecr get-login-password --region <AWS_REGION> | \
+              docker login --username AWS --password-stdin <ECR_URI>
+            docker push $REPOSITORY_URI:latest
+            docker push $REPOSITORY_URI:$IMAGE_TAG
+        - Run: |
+            sed -i "s|\\$REPOSITORY_URI|$REPOSITORY_URI|g" Kubernetes/deployment.yaml
+            sed -i "s|\\$IMAGE_TAG|$IMAGE_TAG|g" Kubernetes/deployment.yaml
+    Outputs:
+      Artifacts:
+        - Name: Manifests
+          Files:
+            - "Kubernetes/*"
+
+  DeployToFargate:
+    Identifier: aws/kubernetes-deploy@v1
+    DependsOn:
+      - BuildKtorApp
+    Environment:
+      Name: ktor-fargate-env
+      Connections:
+        - Name: ktor-fargate-account-connection
+          Role: arn:aws:iam::<account_id>:role/<deploy_role_name>
+    Inputs:
+      Artifacts:
+        - Manifests
+    Configuration:
+      Namespace: default
+      Region: <AWS_REGION>
+      Cluster: <ECS_CLUSTER_NAME>
+      Manifests: Kubernetes/
