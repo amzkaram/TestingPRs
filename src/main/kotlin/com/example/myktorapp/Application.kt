@@ -17,7 +17,17 @@ fun main() {
 fun Application.module() {
     routing {
         get("/") {
-            call.respondText("Hello, World!")
+            call.respondText("Welcome to the User API")
+        }
+        get("/users") {
+            val users = listUsers()
+            call.respond(users)
+suspend fun listUsers(): List<User> {
+    val userService = UserService()
+    return userService.listUsers()
+}
+
+data class User(val id: String, val name: String, val email: String)
         }
     }
 }

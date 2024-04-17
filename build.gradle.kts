@@ -18,6 +18,7 @@ dependencies {
     implementation("io.ktor:ktor-server-core:2.2.4")
     implementation("io.ktor:ktor-server-netty:2.2.4")
     testImplementation("io.ktor:ktor-server-test-host:2.2.4")
+    implementation("aws.sdk.kotlin:dynamodb:0.17.1-beta")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.7.22")
 }
 
